@@ -1,0 +1,29 @@
+from selenium import webdriver
+from time import sleep
+
+
+class TwitterBot:
+    def __init__(self):
+        
+        self.driver = webdriver.Chrome("C:\\Webdriver\\chromedriver.exe")
+
+        self.driver.get("https://twitter.com/explore")
+        sleep(2)
+#         self.driver.find_element_by_xpath("//a[contains(text(), 'Log in')]").click()
+        username_box = self.driver.find_element_by_name("session[username_or_email]")
+        username_box.send_keys(username)
+
+        password_box = self.driver.find_element_by_name("session[password]")
+        password_box.send_keys(password)
+        password_box.send_keys(Keys.RETURN)
+        
+        sleep(4)
+        
+        search_box = self.driver.find_element_by_xpath("""//*[@id="react-root"]/div/div/div[2]/header/div/div/div/div[1]/div[2]/nav/a[2]/div""")
+        search_box.click()  
+        
+        sleep(2)
+        News_button = self.driver.find_element_by_xpath("""//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div/div/div[1]/div[2]/nav/div/div[2]/div/div[4]/a/div/span""").click()
+       
+    
+TwitterBot()       
