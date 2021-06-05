@@ -1,29 +1,125 @@
 from selenium import webdriver
 from time import sleep
-
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from twitterInfo import username,password
 
 class TwitterBot:
-    def __init__(self):
+    def __init__(self,username,password,search,limit):
+        self.username = username
+        self.search = search
+        self.limit = limit
         
-        self.driver = webdriver.Chrome("C:\\Webdriver\\chromedriver.exe")
+#define driver function
+        def init_driver():
+            # initiate the driver:
+            Driver_Path = "C:\\Webdriver\\chromedriver.exe"
+            driver = webdriver.Chrome(executable_path=Driver_Path)
 
-        self.driver.get("https://twitter.com/explore")
+            # set a default wait time for the browser [5 seconds here]:
+            driver.wait = WebDriverWait(driver, 5)
+
+            return driver    
+
+#Initialize webdriver         
+        wd = init_driver()
+
+        wd.get("https://twitter.com/explore")
         sleep(2)
-#         self.driver.find_element_by_xpath("//a[contains(text(), 'Log in')]").click()
-        username_box = self.driver.find_element_by_name("session[username_or_email]")
+        
+#Locate the login box
+        wd.find_element_by_xpath("//span[contains(text(), 'Log in')]").click()
+        sleep(2)
+        
+
+#Login into twitter
+
+        username_box = wd.find_element_by_name("session[username_or_email]")
         username_box.send_keys(username)
 
-        password_box = self.driver.find_element_by_name("session[password]")
+        password_box = wd.find_element_by_name("session[password]")
         password_box.send_keys(password)
-        password_box.send_keys(Keys.RETURN)
-        
-        sleep(4)
-        
-        search_box = self.driver.find_element_by_xpath("""//*[@id="react-root"]/div/div/div[2]/header/div/div/div/div[1]/div[2]/nav/a[2]/div""")
+        password_box.send_keys(Keys.RETURN)       
+        sleep(3)
+
+#locating searchbox        
+        search_box = wd.find_element_by_xpath("""//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div/div/div[1]/div[1]/div/div/div/div/div[1]/div[2]/div/div/div/form/div[1]/div/div/div[2]/input""")
         search_box.click()  
-        
         sleep(2)
-        News_button = self.driver.find_element_by_xpath("""//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div/div/div[1]/div[2]/nav/div/div[2]/div/div[4]/a/div/span""").click()
+
+#Searching for suggested word/words        
+        search_box.send_keys(search)
+        search_box.send_keys(Keys.RETURN)
+        sleep(3)
+        
+#locate photo section
+        photo_button = wd.find_element_by_xpath("""//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div/div/div[1]/div[2]/nav/div[2]/div[4]/a/div/span""").click()
+#         photo_button.click()
+
+#Scroll through page and retieve images    
+        image_count = 0
+        
+        while image_count < limit:
+            last_height = wd.execute_script("return document.body.scrollHeight")
+            actual_images = wd.find_elements_by_class_name('css-9pa8cd')
+            for actual_image in actual_images:
+                if actual_image.get_attribute('src'):
+                    image_urls.append(actual_image.get_attribute('src'))
+                
+
+                    image_count= len(image_urls)
+
+                    if len(image_urls) <= limit:
+                        print(f"Found: {len(image_urls)} image links, done!")
+                        break
+
+                    else:
+                        print("Found:", len(image_urls), "image links, looking for more ...")
+                        sleep(2)
+                        load_more_button = wd.find_elements_by_class_name('css-9pa8cd')
+                        if load_more_button:
+                            wd.execute_script("window.scrollTo(0, {})".format(last_height+500))
+                            sleep(3)
+
+                            new_height = wd.execute_script("return document.body.scrollHeight")
+
+                        if last_height == new_height:
+                            break
+                            
+            
+     # Running the twitterbot
+
+            image_urls = []
+            x = input('Enter your search word: ')
+            y = int(input('Enter number of images: '))
+            TwitterBot(username,password,x,y) 
+            
+            
+      # Check
+            
+            image_urls
+            
+      #Import pymongo
+      
+            from pymongo import MongoClient
+
+            #Create a mongo client 
+            client = MongoClient("mongodb+srv://Benjamin:JUNior123@cluster0.ijszo.mongodb.net/Twitter?retryWrites=true&w=majority")
+            mongodb+srv://Benjamin:<password>@cluster0.ijszo.mongodb.net/<dbname>?retryWrites=true&w=majority
+
+
+        db = client["Twitter"]
+        Images = db['Images']
+        dictOfUrls = { str(i) : image_urls[i] for i in range(0, len(image_urls) ) }
+
+        dictOfUrls
+        
+        
+       Image_input0 = Images.insert_one(dictOfUrls)
        
-    
-TwitterBot()       
+       # Check status
+       Image_input0.acknowledged
+
+       # Get inserted ID
+       Image_input0.inserted_id
